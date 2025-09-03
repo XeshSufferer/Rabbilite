@@ -47,7 +47,7 @@ func (c *Consumer) StartConsuming(queueName string, handler MessageHandler) erro
 
 	go func() {
 		for msg := range msgs {
-			//log.Printf("Received message from %s: %s", queueName, string(msg.Body))
+			log.Printf("Received message from %s: %s", queueName, string(msg.Body))
 
 			if err := handler(msg.Body); err != nil {
 				log.Printf("Error handling message: %v", err)

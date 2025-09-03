@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -53,7 +54,7 @@ func (p *Producer) SendMessage(queueName string, message interface{}) error {
 		return err
 	}
 
-	//log.Printf("Sent message to %s: %s", queueName, string(body))
+	log.Printf("Sent message to %s: %s", queueName, string(body))
 	return nil
 }
 
