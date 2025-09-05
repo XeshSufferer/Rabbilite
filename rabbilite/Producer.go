@@ -57,6 +57,10 @@ func (p *Producer) SendMessage(queueName string, message interface{}) error {
 	return nil
 }
 
+func (p *Producer) IsConnected() bool {
+	return !p.client.conn.IsClosed()
+}
+
 func (p *Producer) Close() {
 	p.client.Close()
 }

@@ -62,6 +62,10 @@ func (c *Consumer) StartConsuming(queueName string, handler MessageHandler) erro
 	return nil
 }
 
+func (c *Consumer) IsConnected() bool {
+	return !c.client.conn.IsClosed()
+}
+
 func (c *Consumer) Close() {
 	c.client.Close()
 }
