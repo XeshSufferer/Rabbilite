@@ -57,6 +57,38 @@ func (p *Producer) SendMessage(queueName string, message interface{}) error {
 	return nil
 }
 
+func (p *Producer) PublishToFanout(exchangeName string, message interface{}) error {
+	err := p.client.channel.ExchangeDeclare(
+		exchangeName, // exchange name
+		"fanout",     // type - fanout
+		true,         // durable
+		false,        // auto-deleted
+		false,        // internal
+		false,        // no-wait
+		nil,          // аргументы
+	)
+	if err != nil {
+		return err
+	}
+
+	body, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+	
+	return p.client.channel.Publish(
+		exchangeName, // exchange
+		"",           // routing key — пустой для fanout
+		false,        // mandatory
+		false,        // immediate
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "application/json",
+			Body:         body,
+			Timestamp:    time.Now(),
+		})
+}
+
 func (p *Producer) IsConnected() bool {
 	return !p.client.conn.IsClosed()
 }
