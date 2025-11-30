@@ -62,6 +62,73 @@ func (c *Consumer) StartConsuming(queueName string, handler MessageHandler) erro
 	return nil
 }
 
+func (c *Consumer) StartConsumingFromFanout(exchangeName string, handler MessageHandler) error {
+	err := c.client.channel.ExchangeDeclare(
+		exchangeName,
+		"fanout",
+		true,  // durable
+		false, // auto-deleted
+		false, // internal
+		false, // no-wait
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+
+	queue, err := c.client.channel.QueueDeclare(
+		"",    
+		false, 
+		false, 
+		true,  
+		false, 
+		nil,   
+	)
+	if err != nil {
+		return err
+	}
+
+
+	err = c.client.channel.QueueBind(
+		queue.Name,   
+		"",           
+		exchangeName, 
+		false,        
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	msgs, err := c.client.channel.Consume(
+		queue.Name,
+		"",
+		false, 
+		true,  
+		false,
+		false, 
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for msg := range msgs {
+			if err := handler(msg.Body); err != nil {
+				log.Printf("Error handling message from fanout exchange '%s': %v", exchangeName, err)
+				msg.Nack(false, true)
+			} else {
+				msg.Ack(false)
+			}
+		}
+	}()
+
+	log.Printf("Started consuming from fanout exchange: %s (using auto-generated queue: %s)", exchangeName, queue.Name)
+	return nil
+}
+
 func (c *Consumer) IsConnected() bool {
 	return !c.client.conn.IsClosed()
 }
